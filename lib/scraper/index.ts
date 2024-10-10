@@ -1,41 +1,43 @@
+'use server'
+
 import config from "@/lib/config/config";
+import crypto from 'crypto'
 import axios from 'axios'
 import * as cheerio from "cheerio";
-import crypto from 'crypto'
 import { extractPrice, extractCurrency, extractDescription } from "../utlis";
 
 
 export async function scrapeAmazonProduct(url: string) {
-    if (!url) return;
+  if (!url) return null;
 
-    // BrightData proxy configuration
+  // BrightData proxy configuration
   //    curl --proxy brd.superproxy.io:22225 --proxy-user brd-customer-hl_fec09715-zone-web_unlock:sgm49auecruq -k "https://geo.brdtest.com/mygeo.json"
   // curl --proxy brd.superproxy.io:22225 --proxy-user brd-customer-hl_17060bb1-zone-web_unlocker1:r51856ya7o0c -k "https://geo.brdtest.com/mygeo.json"
-    
-    const username = config.brightUsername;
-    const password = config.brightPassword;
-
-    const port = 22225;
-    // const session_id = (1000000 * Math.random()) | 0 // this can be used as it can be predictible to hackers
-    const session_id = crypto.randomBytes(16).toString('hex')
+  const username = config.brightUsername;
+  const password = config.brightPassword;
+  const port = 22225;
+  // const session_id = (1000000 * Math.random()) | 0 // this can be used as it can be predictible to hackers
+  const session_id = crypto.randomBytes(16).toString('hex')
   console.log("Given value is session ID:", session_id)
-  
+
   const options = {
-      host: 'brd.superproxy.io',
-      port,
-      auth: {
-          username: `${username}-session-${session_id}`,
-          password: password
-      },
-      rejectUnauthorized: false
-    }
+    host: 'brd.superproxy.io',
+    port,
+    auth: {
+      username: `${username}-session-${session_id}`,
+      password: password
+    },
+    rejectUnauthorized: false
+  }
 
   try {
-      const response = await axios.get(url, options);
-      console.log(response.data)
-      // cheerio
+    //fetch the product
+    const response = await axios.get(url, options);
+    console.log(response.data)
+    // cheerio
     const $ = cheerio.load(response.data);
 
+    // extract product title
     const title = $("#productTitle").text().trim();
 
     const currentPrice = extractPrice(
@@ -52,23 +54,32 @@ export async function scrapeAmazonProduct(url: string) {
       $('#listPrice'),
       $('span.a-price.a-text-price > span.a-offscreen').first(),
     );
-      
+
     const outOfStock = $('#availability > span.a-size-base.a-color-price.a-text-bold').text().trim().toLowerCase() === "currently unavailable";
-    
-    const images = $('#imgTagWrapperId').attr('data-a-dynamic-image') ||
-      $('#landingImage').attr('data-a-dynamic-image') || '{}'
+
+    const images =
+      $('#imgTagWrapperId').attr('data-a-dynamic-image') ||
+      $('#landingImage').attr('data-a-dynamic-image') ||
+      '{}'
+
     const imageUrls = Object.keys(JSON.parse(images))
-    
+
     const currency = extractCurrency(
       $('.a-price-symbol')
     );
-    
-    const discountRate = $('span.savingsPercentage').text().replace(/[-%]/g, '')
-    
+
+    const discountRate = $('span.savingsPercentage')
+      .text()
+      .replace(/[-%]/g, '')
+
     const description = extractDescription($)
 
-    console.log({ title, currentPrice, originalPrice, outOfStock, imageUrls, currency, discountRate })
 
+    console.log(
+      {
+        title, currentPrice, originalPrice, outOfStock, imageUrls, currency, discountRate
+      }
+    )
     // construct data object with scraped info 
     const data = {
       url,
@@ -81,7 +92,7 @@ export async function scrapeAmazonProduct(url: string) {
       discountRate: Number(discountRate),
       category: 'category',
       reviewsCount: 100,
-      stars:4.5,
+      stars: 4.5,
       isOutOfStock: outOfStock,
       description,
       lowestPrice: Number(currentPrice) || Number(originalPrice),
@@ -89,7 +100,8 @@ export async function scrapeAmazonProduct(url: string) {
       averagePrice: Number(currentPrice) || Number(originalPrice),
     }
     return data;
-  } catch (error:any) {
+
+  } catch (error: any) {
     throw new Error(`failed to scrape product: ${error.message}`)
   }
 }

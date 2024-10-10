@@ -7,7 +7,7 @@ export const connectToDB = async () => {
     mongoose.set('strictQuery', true)
 
     if (!config.mongoDB_Database)
-       throw new Error('MONGODB_URI is not defined')
+        throw new Error('MONGODB_URI is not defined')
 
     if (isConnected) {
         console.log('=> using existing database connection');
@@ -17,9 +17,9 @@ export const connectToDB = async () => {
     try {
         await mongoose.connect(config.mongoDB_Database)
         isConnected = true;
-        console.log('MongoDB connected ') 
-        
-    } catch (error:any) {
+        console.log('MongoDB connected ')
+
+    } catch (error: any) {
         throw new Error(`failed to connect to MongoDb ${error.message}`)
     }
 }
