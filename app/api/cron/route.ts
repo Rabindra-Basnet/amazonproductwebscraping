@@ -9,13 +9,14 @@ export const maxDuration = 300;
 export const dynamic = 'force-dynamic'
 export const revalidate = 0;
 
-
 export async function GET() {
     try {
         connectToDB();
 
         const products = await Product.find({})
         if (!products) throw new Error('No Products found')
+
+        console.log(products)
 
         // 1 Scrape Latest Product Details and update DB
         const updatedProducts = await Promise.all(
@@ -72,3 +73,13 @@ export async function GET() {
         throw new Error(`Error in getting all the products: ${error.message}`)
     }
 }
+
+// setInterval(async () => {
+//     try {
+//         console.log('Running product update interval');
+//         await GET();
+//         console.log('Product update completed');
+//     } catch (error: any) {
+//         console.error(`Error in interval: ${error.message}`);
+//     }
+// }, 3000000000); 

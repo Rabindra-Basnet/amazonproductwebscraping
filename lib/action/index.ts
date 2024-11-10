@@ -91,7 +91,7 @@ export async function getAllProducts() {
     try {
         await connectToDB();
 
-        const products = await Product.find()
+        const products = await Product.find({})
         return products
 
     } catch (error: any) {
@@ -116,26 +116,53 @@ export async function getSimilarProducts(productId: string) {
 
 
 
+// export async function addUserEmailToProduct(productId: string, userEmail: string) {
+//     try {
+//         const product = await Product.findById(productId);
+
+//         if (!product) return null;
+//         if (!product.users) {
+//             console.log(`users array not found in product: ${JSON.stringify(product)}`)
+//             product.users = []
+//         }
+
+//         const userExists = product.user.some((user: User) => user.email == userEmail);
+
+//         if (!userExists) {
+//             product.users.push({ email: userEmail })
+//             await product.save();
+//             const emailContent = await generateEmailBody(product, 'WELCOME')
+//             await sendEmail(emailContent, [userEmail])
+//         }
+
+//     } catch (error: any) {
+//         throw new Error(`Error to submit email and sent mail to database ${error.message}`)
+//     }
+// }
+
 export async function addUserEmailToProduct(productId: string, userEmail: string) {
     try {
         const product = await Product.findById(productId);
 
         if (!product) return null;
 
-        const userExists = product.user.some((user: User) => user.email == userEmail);
+        if (!product.users) {
+            console.log(`users array not found in product: ${JSON.stringify(product)}`);
+            product.users = [];
+        }
+
+        // Fix: Corrected `product.user` to `product.users`
+        const userExists = product.users.some((user: User) => user.email === userEmail);
 
         if (!userExists) {
-
-            product.users.push({ email: userEmail })
-
+            product.users.push({ email: userEmail });
             await product.save();
 
-            const emailContent = await generateEmailBody(product, 'WELCOME')
-            await sendEmail(emailContent, [userEmail])
+            const emailContent = await generateEmailBody(product, 'WELCOME');
+            await sendEmail(emailContent, [userEmail]);
         }
 
     } catch (error: any) {
-        throw new Error(`Error to submit email and sent mail to database ${error.message}`)
+        throw new Error(`Error submitting email and sending mail to database: ${error.message}`);
     }
 }
-

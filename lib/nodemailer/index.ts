@@ -1,7 +1,8 @@
 "use server"
-import nodemailer from 'nodemailer'
 import { EmailContent, EmailProductInfo, NotificationType } from '@/types/types'
 import config from '../config/config'
+import nodemailer, { Transporter } from 'nodemailer';
+import SMTPTransport from 'nodemailer/lib/smtp-transport';
 
 
 const Notification = {
@@ -24,8 +25,7 @@ export const generateEmailBody = async (
     let subject = ''
     let body = ""
 
-    switch (
-    type) {
+    switch (type) {
         case Notification.WELCOME:
             subject = `Welcome to Price Tracking for ${shortenedTitle}`;
             body = `
@@ -49,7 +49,7 @@ export const generateEmailBody = async (
                         <h4>Hey, ${product.title} is now restocked! Grab yours before they run out again!</h4>
                         <p>See the product <a href="${product.url}" target="_blank" rel="noopener noreferrer">here</a>.</p>
                     </div>`;
-
+            break;
         case Notification.LOWEST_PRICE:
             subject = `Lowest Price Alert for ${shortenedTitle}`;
             body = `
@@ -73,27 +73,28 @@ export const generateEmailBody = async (
 };
 
 
-const transporter = nodemailer.createTransport({
-    pool: true,
-    service: 'hotmail',
-    port: 2525,
+const transporter: Transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
     auth: {
-        user: 'outlook_7da9659aedbe196c@outlook.com',
+        user: 'rabindrabasnet456@gmail.com',
         pass: config.email_Password,
     },
-    maxConnections: 1,
 })
 
 export const sendEmail = async (emailContent: EmailContent, sendTo: string[]) => {
-    const mailOptions = {
-        from: 'outlook_7da9659aedbe196c@outlook.com',
+    const mailOptions: SMTPTransport.Options = {
+        from: 'rabindrabasnet456@gmail.com',
         to: sendTo,
         html: emailContent.body,
         subject: emailContent.subject,
 
     }
-    transporter.sendMail(mailOptions, (error: any, info: any) => {
-        if (error) return console.log(error)
-        console.log('Email Sent: ', info)
-    })
+    transporter.sendMail(mailOptions,
+        (error: any, info: any) => {
+            if (error) return console.log(error)
+
+            console.log('Email Sent: ', info.response)
+        })
 }

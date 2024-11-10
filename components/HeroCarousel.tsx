@@ -1,84 +1,80 @@
 'use client'
-
-import "react-responsive-carousel/lib/styles/carousel.min.css"; // requires a loader
+import React, { useEffect, useState } from 'react';
+import "react-responsive-carousel/lib/styles/carousel.min.css"; // Import carousel styles
 import { Carousel } from 'react-responsive-carousel';
 import Image from 'next/image';
-import { useEffect, useState, } from "react";
-
-
-// const heroImages = [
-//     { imgUrl: "/assets/images/hero-1.svg", alt: 'smart watch' },
-//     { imgUrl: "/assets/images/hero-2.svg", alt: 'bag' },
-//     { imgUrl: "/assets/images/hero-3.svg", alt: 'lamp' },
-//     { imgUrl: "/assets/images/hero-4.svg", alt: 'air' },
-//     { imgUrl: "/assets/images/hero-5.svg", alt: 'chair' },
-
-// ]
 
 interface Product {
-    _id: string,
-    title: string,
-    image: string,
+    _id: string;
+    title: string;
+    image: string;
 }
 
-
-const HeroCarousel = () => {
-    const [products, setProducts] = useState<Product[]>([])
+const HeroCarousel: React.FC = () => {
+    const [products, setProducts] = useState<Product[]>([]);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const response = await fetch('/api/products')
+                const response = await fetch('/api/fetch', {
+                    next: {
+                        revalidate: 10
+                    }
+                });
                 if (!response.ok) {
-                    throw new Error(`Network Response was not ok`)
+                    throw new Error('Failed to fetch products');
                 }
-
-                const data: Product[] = await response.json()
-                setProducts(data)
-                console.log('Fetched products', data)
-            } catch (error) {
-                setProducts([])
+                const data: Product[] = await response.json();
+                setProducts(data);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'An unknown error occurred');
             }
-        }
+        };
+
         fetchProducts();
-    }, [])
+    }, []);
+
+    console.log(products)
     return (
         <div className="hero-carousel">
-            <Carousel
-                showThumbs={false}
-                autoPlay
-                infiniteLoop
-                interval={2000}
-                showArrows={false}
-                showStatus={false}
-            >
-                {products && products.length > 0 ? (
-                    products.map((product) => (
-                        <Image
-                            key={product._id}
-                            src={product.image}
-                            alt={product.title}
-                            height={484}
-                            width={484}
-                            className='object-contain'
-                        />
-                    ))
-                ) : (
-                    [<div key='no-products'>No products available</div>]
-                    // JSX element instead of an empty string
-                )}
+            {error && <p className="error-message">{error}</p>} {/* Display error message if exists */}
+            {products.length > 0 ? (
+                <Carousel
+                    showThumbs={false}
+                    autoPlay
+                    infiniteLoop
+                    interval={2000}
+                    showArrows={false}
+                    showStatus={false}
+                >
+                    {products.map((product) => (
+                        <div key={product._id} className="carousel-item">
+                            <Image
+                                src={product.image}
+                                alt={product.title}
+                                height={484}
+                                width={484}
+                                className='object-contain'
+                            />
+                            <p className="legend">{product.title}</p> {/* Optional legend text */}
+                        </div>
+                    ))}
+                </Carousel>
+            ) :
 
-            </Carousel >
+                <p className="error-message">Loading....</p>
+                // Show loading message until products are fetched
+            }
             <Image
                 src='/assets/icons/hand-drawn-arrow.svg'
                 alt="arrow"
                 width={175}
                 height={175}
                 className="max-xl:hidden absolute -left-[15%] bottom-0"
-
             />
-        </div >
-    )
-}
+        </div>
+    );
+};
 
-export default HeroCarousel
+export default HeroCarousel;

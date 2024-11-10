@@ -3,6 +3,7 @@ import { Product } from '@/types/types';
 import Link from 'next/link';
 import Image from 'next/image';
 
+
 interface Props {
     product: Product;
 }

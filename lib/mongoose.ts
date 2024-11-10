@@ -16,6 +16,7 @@ export const connectToDB = async () => {
 
     try {
         await mongoose.connect(config.mongoDB_Database)
+        // await mongoose.connect("mongodb://localhost:27017/FetchData/admin")
         isConnected = true;
         console.log('MongoDB connected ')
 
