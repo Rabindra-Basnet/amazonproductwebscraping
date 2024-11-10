@@ -18,8 +18,8 @@ import Modal from '@/components/Modal'
 // }
 
 
-const ProductDetails: React.FC<Props> = async ({ params }: { params: { id: string } }) => {
-    const product: Product = await getProductById(id)
+const ProductDetails = async ({ params }: { params: { id: string } }) => {
+    const product: Product = await getProductById(params.id)
     if (!product) redirect('/')
 
     const priceInfoData = [
@@ -79,12 +79,12 @@ const ProductDetails: React.FC<Props> = async ({ params }: { params: { id: strin
         },
     ]
 
-    const similarProducts = await getSimilarProducts(id)
+    const similarProducts = await getSimilarProducts(params.id)
 
     return (
         <div className='product-container' >
 
-            {id}
+            {params.id}
             <div className='flex gap-1  xl:flex-row  flex-col'>
                 <div className='product-image'>
                     <Image
@@ -218,7 +218,7 @@ const ProductDetails: React.FC<Props> = async ({ params }: { params: { id: strin
                         </div>
                     </div>
 
-                    <Modal productId={id} />
+                    <Modal productId={params.id} />
                 </div>
             </div>
 
