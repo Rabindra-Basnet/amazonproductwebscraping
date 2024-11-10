@@ -24,7 +24,7 @@ const Navbar = () => {
             alt='Logo'
           />
           <p className='nav-logo'>
-           Amazon Product <span className='text-primary'>Scraping</span>
+           Product <span className='text-primary'>Scraping</span>
           </p>
         </Link>
         <div className='flex items-center gap-5'>
