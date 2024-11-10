@@ -13,13 +13,12 @@ import ProductCard from '@/components/ProductCard'
 import Modal from '@/components/Modal'
 
 
-type Props = {
-    params: { id: string },
-    key: number
-}
+// type Props = {
+//     params: { id: string },
+// }
 
 
-const ProductDetails: React.FC<Props> = async ({ params: { id } }: Props) => {
+const ProductDetails: React.FC<Props> = async ({ params }: { params: { id: string } }) => {
     const product: Product = await getProductById(id)
     if (!product) redirect('/')
 
